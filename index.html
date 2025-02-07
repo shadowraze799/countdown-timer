@@ -3,89 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مؤقت مع عد تنازلي</title>
+    <title>Multi Timer</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            margin-top: 100px;
+            margin: 20px;
+            background-color: #f5f5f5;
         }
-        #timer {
-            font-size: 50px;
+        h1 {
+            font-size: 32px;
+            color: #333;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+        .timer-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .timer {
+            font-size: 40px;
             font-weight: bold;
+            margin: 10px 0;
         }
-        #countdown {
-            font-size: 60px;
+        .countdown {
+            font-size: 50px;
             color: red;
             font-weight: bold;
-            margin-top: 20px;
         }
         button {
-            font-size: 20px;
+            font-size: 18px;
             padding: 10px 20px;
-            margin: 10px;
+            margin: 5px;
             cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+        .play-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .stop-btn {
+            background-color: #dc3545;
+            color: white;
         }
     </style>
 </head>
 <body>
 
-    <h1>المؤقت</h1>
-    <div id="timer">35</div>
-    <div id="countdown"></div>
+    <h1>Timer</h1>
 
-    <button onclick="startTimer()">Play</button>
-    <button onclick="stopTimer()">Stop</button>
+    <div class="container">
+        <!-- المؤقت الأول -->
+        <div class="timer-box">
+            <h2>Timer 1 (35s)</h2>
+            <div id="timer1" class="timer">35</div>
+            <div id="countdown1" class="countdown"></div>
+            <button class="play-btn" onclick="startTimer(1, 35, 6)">Play</button>
+            <button class="stop-btn" onclick="stopTimer(1, 35)">Stop</button>
+        </div>
+
+        <!-- المؤقت الثاني -->
+        <div class="timer-box">
+            <h2>Timer 2 (30s)</h2>
+            <div id="timer2" class="timer">30</div>
+            <div id="countdown2" class="countdown"></div>
+            <button class="play-btn" onclick="startTimer(2, 30, 6)">Play</button>
+            <button class="stop-btn" onclick="stopTimer(2, 30)">Stop</button>
+        </div>
+
+        <!-- المؤقت الثالث -->
+        <div class="timer-box">
+            <h2>Timer 3 (25s)</h2>
+            <div id="timer3" class="timer">25</div>
+            <div id="countdown3" class="countdown"></div>
+            <button class="play-btn" onclick="startTimer(3, 25, 6)">Play</button>
+            <button class="stop-btn" onclick="stopTimer(3, 25)">Stop</button>
+        </div>
+
+        <!-- المؤقت الرابع -->
+        <div class="timer-box">
+            <h2>Timer 4 (30s)</h2>
+            <div id="timer4" class="timer">30</div>
+            <div id="countdown4" class="countdown"></div>
+            <button class="play-btn" onclick="startTimer(4, 30, 6)">Play</button>
+            <button class="stop-btn" onclick="stopTimer(4, 30)">Stop</button>
+        </div>
+    </div>
 
     <audio id="countdownSound" src="countdown.mp3"></audio>
 
     <script>
-        let timeLeft = 35;
-        let timerDisplay = document.getElementById("timer");
-        let countdown = document.getElementById("countdown");
-        let countdownSound = document.getElementById("countdownSound");
-        let timerInterval;
-        let isRunning = false;
+        let timers = {};
+        let isRunning = {};
 
-        function startTimer() {
-            if (isRunning) return;
-            isRunning = true;
-            timerDisplay.textContent = timeLeft;
-            countdown.textContent = "";
+        function startTimer(id, duration, soundStart) {
+            if (isRunning[id]) return;
+            isRunning[id] = true;
+            let timeLeft = duration;
+            document.getElementById(`timer${id}`).textContent = timeLeft;
+            document.getElementById(`countdown${id}`).textContent = "";
 
-            timerInterval = setInterval(() => {
+            timers[id] = setInterval(() => {
                 timeLeft--;
-                timerDisplay.textContent = timeLeft;
+                document.getElementById(`timer${id}`).textContent = timeLeft;
 
-                // تشغيل الصوت عند الثانية 29 فقط
-                if (timeLeft === 6) {
-                    countdownSound.play();
+                if (timeLeft === soundStart) {
+                    document.getElementById("countdownSound").play();
                 }
 
-                // عرض العد التنازلي عندما يصل إلى 5 ثواني أو أقل
-                if (timeLeft <= 5) {
-                    countdown.textContent = timeLeft;
+                if (timeLeft <= 5 && timeLeft > 0) {
+                    document.getElementById(`countdown${id}`).textContent = timeLeft;
                 } else {
-                    countdown.textContent = "";
+                    document.getElementById(`countdown${id}`).textContent = "";
                 }
 
                 if (timeLeft === 0) {
-                    clearInterval(timerInterval);
-                    isRunning = false;
-                    timeLeft = 35;
-                    startTimer(); // إعادة تشغيل المؤقت تلقائيًا
+                    clearInterval(timers[id]);
+                    isRunning[id] = false;
+                    startTimer(id, duration, soundStart); // إعادة تشغيل المؤقت تلقائيًا
                 }
             }, 1000);
         }
 
-        function stopTimer() {
-            clearInterval(timerInterval);
-            isRunning = false;
-            timeLeft = 35;
-            timerDisplay.textContent = timeLeft;
-            countdown.textContent = "";
-            countdownSound.pause();
-            countdownSound.currentTime = 0; // إعادة الصوت للبداية عند التوقف
+        function stopTimer(id, duration) {
+            clearInterval(timers[id]);
+            isRunning[id] = false;
+            document.getElementById(`timer${id}`).textContent = duration;
+            document.getElementById(`countdown${id}`).textContent = "";
+            document.getElementById("countdownSound").pause();
+            document.getElementById("countdownSound").currentTime = 0;
         }
     </script>
 
